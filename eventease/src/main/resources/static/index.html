@@ -1,0 +1,602 @@
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventEase Dashboard</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            color: #222;
+        }
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 230px;
+            height: 100vh;
+            background: #172033;
+            color: white;
+            padding: 22px 14px;
+        }
+        .brand {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0 10px 28px;
+        }
+        .nav button {
+            width: 100%;
+            border: 0;
+            background: transparent;
+            color: #dce2ed;
+            text-align: left;
+            padding: 13px 12px;
+            margin: 3px 0;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+        .nav button:hover, .nav button.active {
+            background: #293751;
+            color: white;
+        }
+        .main {
+            margin-left: 230px;
+            padding: 28px;
+        }
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        h1 { font-size: 28px; }
+        .sub { color: #6b7280; margin-top: 5px; }
+        .section { display: none; }
+        .section.active { display: block; }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+        .card {
+            background: white;
+            padding: 22px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.06);
+        }
+        .card h3 {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        .number {
+            font-size: 30px;
+            font-weight: bold;
+        }
+        .panel {
+            background: white;
+            padding: 22px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.06);
+            margin-bottom: 22px;
+        }
+        .panel h2 { margin-bottom: 18px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        th { background: #f8fafc; }
+        form {
+            display: grid;
+            gap: 13px;
+            max-width: 650px;
+        }
+        input, select {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .btn {
+            background: #172033;
+            color: white;
+            border: 0;
+            padding: 11px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .btn:hover { background: #293751; }
+        .danger { background: #b42318; }
+        .message {
+            margin-top: 12px;
+            padding: 10px;
+            border-radius: 6px;
+            display: none;
+        }
+        .success { background: #e8f5e9; color: #176b2c; }
+        .error { background: #fdecec; color: #9b1c1c; }
+        .actions { display: flex; gap: 8px; }
+        @media (max-width: 900px) {
+            .cards { grid-template-columns: repeat(2, 1fr); }
+            .sidebar { width: 190px; }
+            .main { margin-left: 190px; }
+        }
+        @media (max-width: 650px) {
+            .sidebar { position: static; width: 100%; height: auto; }
+            .main { margin-left: 0; padding: 15px; }
+            .cards { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="brand">EventEase</div>
+    <div class="nav">
+        <button class="active" onclick="showSection('dashboard', this)">Dashboard</button>
+        <button onclick="showSection('events', this); loadEvents()">Events</button>
+        <button onclick="showSection('students', this); loadStudents()">Students</button>
+        <button onclick="showSection('organizers', this); loadOrganizers()">Organizers</button>
+        <button onclick="showSection('registrations', this); loadRegistrations()">Registrations</button>
+    </div>
+</aside>
+
+<main class="main">
+
+    <section id="dashboard" class="section active">
+        <div class="topbar">
+            <div>
+                <h1>Dashboard</h1>
+                <p class="sub">College Event Registration System</p>
+            </div>
+            <button class="btn" onclick="loadDashboard()">Refresh</button>
+        </div>
+
+        <div class="cards">
+            <div class="card">
+                <h3>Total Events</h3>
+                <div class="number" id="totalEvents">0</div>
+            </div>
+            <div class="card">
+                <h3>Total Students</h3>
+                <div class="number" id="totalStudents">0</div>
+            </div>
+            <div class="card">
+                <h3>Total Registrations</h3>
+                <div class="number" id="totalRegistrations">0</div>
+            </div>
+            <div class="card">
+                <h3>Upcoming Events</h3>
+                <div class="number" id="upcomingEvents">0</div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Upcoming Events</h2>
+            <table>
+                <thead>
+                <tr>
+                    <th>Event</th>
+                    <th>Date</th>
+                    <th>Venue</th>
+                    <th>Maximum Seats</th>
+                </tr>
+                </thead>
+                <tbody id="dashboardEvents"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <section id="events" class="section">
+        <div class="topbar">
+            <div>
+                <h1>Events</h1>
+                <p class="sub">Create and manage college events</p>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Create Event</h2>
+            <form onsubmit="createEvent(event)">
+                <input id="eventTitle" placeholder="Event title" required>
+                <input id="eventDate" type="date" required>
+                <input id="eventVenue" placeholder="Venue" required>
+                <input id="eventSeats" type="number" min="1" placeholder="Maximum seats" required>
+                <button class="btn">Create Event</button>
+            </form>
+            <div id="eventMessage" class="message"></div>
+        </div>
+
+        <div class="panel">
+            <h2>All Events</h2>
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th><th>Title</th><th>Date</th><th>Venue</th><th>Seats</th><th>Action</th>
+                </tr>
+                </thead>
+                <tbody id="eventsTable"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <section id="students" class="section">
+        <div class="topbar">
+            <div>
+                <h1>Students</h1>
+                <p class="sub">Manage student records</p>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Add Student</h2>
+            <form onsubmit="createStudent(event)">
+                <input id="studentName" placeholder="Student name" required>
+                <input id="studentEmail" type="email" placeholder="Email" required>
+                <input id="studentDepartment" placeholder="Department" required>
+                <button class="btn">Add Student</button>
+            </form>
+            <div id="studentMessage" class="message"></div>
+        </div>
+
+        <div class="panel">
+            <h2>All Students</h2>
+            <table>
+                <thead>
+                <tr><th>ID</th><th>Name</th><th>Email</th><th>Department</th></tr>
+                </thead>
+                <tbody id="studentsTable"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <section id="organizers" class="section">
+        <div class="topbar">
+            <div>
+                <h1>Organizers</h1>
+                <p class="sub">Manage event organizers</p>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Add Organizer</h2>
+            <form onsubmit="createOrganizer(event)">
+                <input id="organizerName" placeholder="Organizer name" required>
+                <input id="organizerEmail" type="email" placeholder="Email" required>
+                <button class="btn">Add Organizer</button>
+            </form>
+            <div id="organizerMessage" class="message"></div>
+        </div>
+
+        <div class="panel">
+            <h2>All Organizers</h2>
+            <table>
+                <thead>
+                <tr><th>ID</th><th>Name</th><th>Email</th></tr>
+                </thead>
+                <tbody id="organizersTable"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <section id="registrations" class="section">
+        <div class="topbar">
+            <div>
+                <h1>Registrations</h1>
+                <p class="sub">Register students and manage registrations</p>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Register Student</h2>
+            <form onsubmit="createRegistration(event)">
+                <input id="registrationStudentId" type="number" min="1" placeholder="Student ID" required>
+                <input id="registrationEventId" type="number" min="1" placeholder="Event ID" required>
+                <button class="btn">Register</button>
+            </form>
+            <div id="registrationMessage" class="message"></div>
+        </div>
+
+        <div class="panel">
+            <h2>Find Registrations</h2>
+            <div class="actions">
+                <button class="btn" onclick="loadAllRegistrations()">All Event Registrations</button>
+            </div>
+            <br>
+            <table>
+                <thead>
+                <tr><th>ID</th><th>Student ID</th><th>Event ID</th><th>Date</th><th>Action</th></tr>
+                </thead>
+                <tbody id="registrationsTable"></tbody>
+            </table>
+        </div>
+    </section>
+
+</main>
+
+<script>
+    async function api(url, options = {}) {
+        const response = await fetch(url, options);
+        const text = await response.text();
+
+        let data;
+        try { data = text ? JSON.parse(text) : null; }
+        catch { data = text; }
+
+        if (!response.ok) {
+            const message = data?.error || data?.message || text || "Request failed";
+            throw new Error(message);
+        }
+        return data;
+    }
+
+    function showSection(id, button) {
+        document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+        document.getElementById(id).classList.add("active");
+        document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
+        button.classList.add("active");
+    }
+
+    function showMessage(id, message, error = false) {
+        const el = document.getElementById(id);
+        el.textContent = message;
+        el.className = "message " + (error ? "error" : "success");
+        el.style.display = "block";
+    }
+
+    async function loadDashboard() {
+        try {
+            const data = await api("/dashboard");
+            document.getElementById("totalEvents").textContent = data.totalEvents ?? 0;
+            document.getElementById("totalStudents").textContent = data.totalStudents ?? 0;
+            document.getElementById("totalRegistrations").textContent = data.totalRegistrations ?? 0;
+            document.getElementById("upcomingEvents").textContent = data.upcomingEvents ?? 0;
+
+            const events = await api("/events/upcoming");
+            const tbody = document.getElementById("dashboardEvents");
+            tbody.innerHTML = "";
+
+            events.forEach(e => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${e.title}</td>
+                        <td>${e.date}</td>
+                        <td>${e.venue}</td>
+                        <td>${e.maxSeats}</td>
+                    </tr>`;
+            });
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    async function loadEvents() {
+        try {
+            const events = await api("/events");
+            const tbody = document.getElementById("eventsTable");
+            tbody.innerHTML = "";
+
+            events.forEach(e => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${e.eventId}</td>
+                        <td>${e.title}</td>
+                        <td>${e.date}</td>
+                        <td>${e.venue}</td>
+                        <td>${e.maxSeats}</td>
+                        <td>
+                            <button class="btn danger" onclick="deleteEvent(${e.eventId})">Delete</button>
+                        </td>
+                    </tr>`;
+            });
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    async function createEvent(event) {
+        event.preventDefault();
+
+        const data = {
+            title: document.getElementById("eventTitle").value,
+            date: document.getElementById("eventDate").value,
+            venue: document.getElementById("eventVenue").value,
+            maxSeats: Number(document.getElementById("eventSeats").value)
+        };
+
+        try {
+            await api("/events", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(data)
+            });
+
+            showMessage("eventMessage", "Event created successfully");
+            event.target.reset();
+            loadEvents();
+            loadDashboard();
+        } catch (error) {
+            showMessage("eventMessage", error.message, true);
+        }
+    }
+
+    async function deleteEvent(id) {
+        if (!confirm("Delete this event?")) return;
+
+        try {
+            await api("/events/" + id, {method: "DELETE"});
+            loadEvents();
+            loadDashboard();
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+
+    async function loadStudents() {
+        try {
+            const students = await api("/students");
+            const tbody = document.getElementById("studentsTable");
+            tbody.innerHTML = "";
+
+            students.forEach(s => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${s.studentId}</td>
+                        <td>${s.name}</td>
+                        <td>${s.email}</td>
+                        <td>${s.department}</td>
+                    </tr>`;
+            });
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    async function createStudent(event) {
+        event.preventDefault();
+
+        const data = {
+            name: document.getElementById("studentName").value,
+            email: document.getElementById("studentEmail").value,
+            department: document.getElementById("studentDepartment").value
+        };
+
+        try {
+            await api("/students", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(data)
+            });
+
+            showMessage("studentMessage", "Student added successfully");
+            event.target.reset();
+            loadStudents();
+            loadDashboard();
+        } catch (error) {
+            showMessage("studentMessage", error.message, true);
+        }
+    }
+
+    async function loadOrganizers() {
+        try {
+            const organizers = await api("/organizers");
+            const tbody = document.getElementById("organizersTable");
+            tbody.innerHTML = "";
+
+            organizers.forEach(o => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${o.organizerId}</td>
+                        <td>${o.name}</td>
+                        <td>${o.email}</td>
+                    </tr>`;
+            });
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    async function createOrganizer(event) {
+        event.preventDefault();
+
+        const data = {
+            name: document.getElementById("organizerName").value,
+            email: document.getElementById("organizerEmail").value
+        };
+
+        try {
+            await api("/organizers", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(data)
+            });
+
+            showMessage("organizerMessage", "Organizer added successfully");
+            event.target.reset();
+            loadOrganizers();
+        } catch (error) {
+            showMessage("organizerMessage", error.message, true);
+        }
+    }
+
+    async function createRegistration(event) {
+        event.preventDefault();
+
+        const studentId = document.getElementById("registrationStudentId").value;
+        const eventId = document.getElementById("registrationEventId").value;
+
+        try {
+            await api(`/registrations?studentId=${studentId}&eventId=${eventId}`, {
+                method: "POST"
+            });
+
+            showMessage("registrationMessage", "Student registered successfully");
+            event.target.reset();
+            loadAllRegistrations();
+            loadDashboard();
+        } catch (error) {
+            showMessage("registrationMessage", error.message, true);
+        }
+    }
+
+    async function loadAllRegistrations() {
+        try {
+            const events = await api("/events");
+            const tbody = document.getElementById("registrationsTable");
+            tbody.innerHTML = "";
+
+            for (const event of events) {
+                const registrations = await api("/registrations/event/" + event.eventId);
+
+                registrations.forEach(r => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${r.registrationId}</td>
+                            <td>${r.student?.studentId ?? "-"}</td>
+                            <td>${r.event?.eventId ?? "-"}</td>
+                            <td>${r.registrationDate}</td>
+                            <td>
+                                <button class="btn danger"
+                                    onclick="cancelRegistration(${r.registrationId})">
+                                    Cancel
+                                </button>
+                            </td>
+                        </tr>`;
+                });
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    async function cancelRegistration(id) {
+        if (!confirm("Cancel this registration?")) return;
+
+        try {
+            await api("/registrations/" + id, {method: "DELETE"});
+            loadAllRegistrations();
+            loadDashboard();
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+
+    async function loadRegistrations() {
+        await loadAllRegistrations();
+    }
+
+    window.addEventListener("load", loadDashboard);
+</script>
+
+</body>
+</html>
