@@ -1,0 +1,4 @@
+package com.example.eventease.exception;
+
+public class RegistrationException {
+}
